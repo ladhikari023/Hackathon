@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 
 from auth import get_current_user
+from config import FREE_DAILY_AI_REPLIES
 from database import get_session
 from models.chat import ChatMessage
 from models.user import User
+from services.ai_chat_service import generate_ai_reply
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -15,17 +19,69 @@ class MessageRequest(BaseModel):
     message: str
 
 
+def _start_of_today_utc() -> datetime:
+    now = datetime.now(UTC)
+    return datetime(now.year, now.month, now.day)
+
+
+async def _get_today_ai_reply_count(session: AsyncSession, user_id) -> int:
+    result = await session.exec(
+        select(ChatMessage)
+        .where(ChatMessage.user_id == user_id)
+        .where(ChatMessage.role == "ai")
+        .where(ChatMessage.created_at >= _start_of_today_utc())
+    )
+    return len(result.all())
+
+
+async def _get_chat_usage(session: AsyncSession, user: User) -> dict:
+    used_today = await _get_today_ai_reply_count(session, user.id)
+    if user.is_premium:
+        return {
+            "is_premium": True,
+            "daily_limit": None,
+            "used_today": used_today,
+            "remaining_today": None,
+        }
+
+    remaining_today = max(FREE_DAILY_AI_REPLIES - used_today, 0)
+    return {
+        "is_premium": False,
+        "daily_limit": FREE_DAILY_AI_REPLIES,
+        "used_today": used_today,
+        "remaining_today": remaining_today,
+    }
+
+
 @router.post("/message")
 async def send_message(
     body: MessageRequest,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
+    usage = await _get_chat_usage(session, user)
+    if not user.is_premium and usage["remaining_today"] == 0:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "free_limit_reached",
+                "message": "You have used all free AI replies for today.",
+                "usage": usage,
+            },
+        )
+
     user_msg = ChatMessage(user_id=user.id, role="user", message=body.message)
     session.add(user_msg)
+    await session.flush()
 
-    # TODO: Replace with real LLM API call (OpenAI / Gemini)
-    ai_text = _placeholder_reply(body.message)
+    history_result = await session.exec(
+        select(ChatMessage)
+        .where(ChatMessage.user_id == user.id)
+        .order_by(ChatMessage.created_at)
+    )
+    history = history_result.all()
+
+    ai_text = await generate_ai_reply(history[:-1], body.message)
 
     ai_msg = ChatMessage(user_id=user.id, role="ai", message=ai_text)
     session.add(ai_msg)
@@ -33,11 +89,13 @@ async def send_message(
     await session.commit()
     await session.refresh(ai_msg)
 
+    updated_usage = await _get_chat_usage(session, user)
     return {
         "id": str(ai_msg.id),
         "role": ai_msg.role,
         "message": ai_msg.message,
         "created_at": ai_msg.created_at.isoformat(),
+        "usage": updated_usage,
     }
 
 
@@ -63,19 +121,9 @@ async def chat_history(
     ]
 
 
-def _placeholder_reply(user_message: str) -> str:
-    """Keyword-aware placeholder until a real LLM is wired up."""
-    lower = user_message.lower()
-    if any(w in lower for w in ("lonely", "alone")):
-        return "Feeling lonely can be really painful. You're reaching out right now, and that's a brave step. You're not as alone as you might feel."
-    if any(w in lower for w in ("stress", "overwhelm")):
-        return "Stress can feel all-consuming. Let's try to break things down — what's the one thing weighing on you the most right now?"
-    if any(w in lower for w in ("happy", "good", "great")):
-        return "That's wonderful to hear! What's contributing to your positive mood today? Recognizing these moments is really valuable."
-    if any(w in lower for w in ("sad", "depress", "down")):
-        return "I'm sorry you're feeling this way. Would you like to try a quick grounding exercise together?"
-    if any(w in lower for w in ("anxious", "anxiety", "worried")):
-        return "Anxiety can be really overwhelming. Try naming 5 things you can see around you right now — it can help bring you back to the present."
-    if any(w in lower for w in ("sleep", "tired", "insomnia")):
-        return "Sleep difficulties can really affect how we feel. A consistent bedtime routine and limiting screens before bed can help. How long has this been going on?"
-    return "I hear you, and I want you to know that your feelings are completely valid. Would you like to tell me more about what's on your mind?"
+@router.get("/usage")
+async def chat_usage(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    return await _get_chat_usage(session, user)

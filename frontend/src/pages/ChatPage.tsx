@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import api from "../api/client";
 
 interface Message {
@@ -6,6 +7,14 @@ interface Message {
   role: "user" | "ai";
   message: string;
   created_at: string;
+  usage?: Usage;
+}
+
+interface Usage {
+  is_premium: boolean;
+  daily_limit: number | null;
+  used_today: number;
+  remaining_today: number | null;
 }
 
 export default function ChatPage() {
@@ -20,18 +29,53 @@ export default function ChatPage() {
   ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [usage, setUsage] = useState<Usage | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadChat() {
+      try {
+        const [historyRes, usageRes] = await Promise.all([
+          api.get<Message[]>("/chat/history"),
+          api.get<Usage>("/chat/usage"),
+        ]);
+        if (cancelled) return;
+
+        if (historyRes.data.length > 0) {
+          setMessages(historyRes.data);
+        }
+        setUsage(usageRes.data);
+      } catch {
+        if (!cancelled) {
+          setError("Unable to load your chat right now.");
+        }
+      }
+    }
+
+    loadChat();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSend() {
     const text = input.trim();
     if (!text || sending) return;
+    if (usage && !usage.is_premium && usage.remaining_today === 0) {
+      setError("You have used all 3 free AI replies for today. Upgrade to premium to continue.");
+      return;
+    }
 
+    const pendingMessageId = crypto.randomUUID();
     const userMsg: Message = {
-      id: crypto.randomUUID(),
+      id: pendingMessageId,
       role: "user",
       message: text,
       created_at: new Date().toISOString(),
@@ -39,11 +83,22 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setSending(true);
+    setError(null);
 
     try {
       const res = await api.post("/chat/message", { message: text });
       setMessages((prev) => [...prev, res.data]);
-    } catch {
+      setUsage(res.data.usage);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 403) {
+        const detail = err.response.data?.detail;
+        if (detail?.code === "free_limit_reached") {
+          setMessages((prev) => prev.filter((msg) => msg.id !== pendingMessageId));
+          setUsage(detail.usage);
+          setError("You have used all 3 free AI replies for today. Upgrade to premium to continue.");
+          return;
+        }
+      }
       setMessages((prev) => [
         ...prev,
         {
@@ -53,6 +108,7 @@ export default function ChatPage() {
           created_at: new Date().toISOString(),
         },
       ]);
+      setError("Sorry, something went wrong. Please try again.");
     } finally {
       setSending(false);
     }
@@ -63,6 +119,14 @@ export default function ChatPage() {
       <header className="page-header">
         <h2>AI Companion</h2>
         <p>Your safe space to talk</p>
+        {usage ? (
+          <p>
+            {usage.is_premium
+              ? "Premium active: unlimited AI replies."
+              : `${usage.remaining_today} of ${usage.daily_limit} free AI replies left today.`}
+          </p>
+        ) : null}
+        {error ? <p>{error}</p> : null}
       </header>
 
       <div className="chat-container">
@@ -96,9 +160,16 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            disabled={sending}
+            disabled={sending || (!!usage && !usage.is_premium && usage.remaining_today === 0)}
           />
-          <button type="submit" disabled={sending || !input.trim()}>
+          <button
+            type="submit"
+            disabled={
+              sending ||
+              !input.trim() ||
+              (!!usage && !usage.is_premium && usage.remaining_today === 0)
+            }
+          >
             Send
           </button>
         </form>

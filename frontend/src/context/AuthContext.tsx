@@ -15,6 +15,7 @@ interface User {
   email: string;
   provider: string;
   role: UserRole;
+  is_premium: boolean;
 }
 
 interface AuthState {
