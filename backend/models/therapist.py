@@ -13,4 +13,5 @@ class Therapist(SQLModel, table=True):
     languages: str
     bio: str = Field(default="")
     tz: str = Field(default="UTC")
+    intro_message_price_cents: int = Field(default=0)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))

@@ -43,3 +43,11 @@ async def create_tables():
                 """
             )
         )
+        await conn.execute(
+            text(
+                """
+                ALTER TABLE therapists
+                ADD COLUMN IF NOT EXISTS intro_message_price_cents INTEGER NOT NULL DEFAULT 0
+                """
+            )
+        )
