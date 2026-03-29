@@ -6,6 +6,8 @@ from .peer_match import PeerMatch
 from .peer_message import PeerMessage
 from .post import Post
 from .therapist import Therapist
+from .therapist_intro_request import TherapistIntroRequest
+from .therapist_thread_message import TherapistThreadMessage
 from .user import User
 
-__all__ = ["User", "ChatMessage", "MoodLog", "Post", "Comment", "Therapist", "PeerMatch", "PeerMessage", "FriendRequest"]
+__all__ = ["User", "ChatMessage", "MoodLog", "Post", "Comment", "Therapist", "TherapistIntroRequest", "TherapistThreadMessage", "PeerMatch", "PeerMessage", "FriendRequest"]

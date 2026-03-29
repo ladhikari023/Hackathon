@@ -1030,6 +1030,84 @@ body {
   text-align: center;
 }
 
+.therapist-intro-pricing {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.therapist-intro-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.therapist-intro-box textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  resize: vertical;
+  min-height: 86px;
+}
+
+.therapist-intro-status {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.therapist-request-status-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.therapist-pricing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.therapist-request-card {
+  align-items: flex-start;
+}
+
+.therapist-request-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.therapist-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.therapist-thread-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.therapist-thread-message {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.therapist-thread-message.me {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.18);
+}
+
 .therapist-avatar {
   width: 56px;
   height: 56px;
