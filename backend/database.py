@@ -27,3 +27,19 @@ async def create_tables():
                 """
             )
         )
+        await conn.execute(
+            text(
+                """
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS bio TEXT NOT NULL DEFAULT ''
+                """
+            )
+        )
+        await conn.execute(
+            text(
+                """
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS health_status TEXT NOT NULL DEFAULT ''
+                """
+            )
+        )

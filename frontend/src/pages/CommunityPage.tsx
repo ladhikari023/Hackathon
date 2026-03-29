@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 
 interface Comment {
@@ -10,6 +11,7 @@ interface Comment {
 
 interface Post {
   id: string;
+  user_id: string;
   title: string;
   content: string;
   user_name: string;
@@ -18,6 +20,7 @@ interface Post {
 }
 
 export default function CommunityPage() {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
@@ -100,6 +103,7 @@ export default function CommunityPage() {
             key={post.id}
             post={post}
             onCommentAdded={() => updateCommentCount(post.id, 1)}
+            onOpenProfile={() => navigate(`/users/${post.user_id}`)}
           />
         ))}
       </div>
@@ -110,9 +114,11 @@ export default function CommunityPage() {
 function PostCard({
   post,
   onCommentAdded,
+  onOpenProfile,
 }: {
   post: Post;
   onCommentAdded: () => void;
+  onOpenProfile: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -153,16 +159,45 @@ function PostCard({
 
   return (
     <article className="post-card">
-      <h3>{post.title}</h3>
-      <p>{post.content}</p>
+      <div
+        className="post-card-hitbox"
+        onClick={onOpenProfile}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpenProfile();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
+        <h3>{post.title}</h3>
+        <p>{post.content}</p>
+      </div>
       <div className="post-meta">
         <span>{post.user_name}</span>
         <span>·</span>
         <span>{new Date(post.created_at).toLocaleDateString()}</span>
         <span>·</span>
-        <button className="btn-comments-toggle" onClick={toggleComments}>
+        <button
+          className="btn-comments-toggle"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleComments();
+          }}
+        >
           {post.comment_count} comment{post.comment_count !== 1 ? "s" : ""}
           <span className="toggle-arrow">{expanded ? "▲" : "▼"}</span>
+        </button>
+        <span>·</span>
+        <button
+          className="btn-comments-toggle"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenProfile();
+          }}
+        >
+          View profile
         </button>
       </div>
 

@@ -10,6 +10,7 @@ import TherapistsPage from "./pages/TherapistsPage";
 import AdminPage from "./pages/AdminPage";
 import PatientInsightsPage from "./pages/PatientInsightsPage";
 import PeerMatchPage from "./pages/PeerMatchPage";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
   return (
@@ -24,6 +25,8 @@ export default function App() {
           }
         >
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/users/:userId" element={<ProfilePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/mood" element={<MoodPage />} />
           <Route path="/community" element={<CommunityPage />} />

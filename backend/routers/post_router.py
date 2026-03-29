@@ -25,6 +25,7 @@ class CommentRequest(BaseModel):
 def _post_dict(post: Post, comment_count: int) -> dict:
     return {
         "id": str(post.id),
+        "user_id": str(post.user_id),
         "title": post.title,
         "content": post.content,
         "user_name": ANONYMOUS_LABEL,
