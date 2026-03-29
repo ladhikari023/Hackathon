@@ -8,9 +8,11 @@ from database import async_session_factory, create_tables
 from routers.admin_router import router as admin_router
 from routers.auth_router import router as auth_router
 from routers.chat_router import router as chat_router
+from routers.friend_router import router as friend_router
 from routers.mood_router import router as mood_router
 from routers.peer_router import router as peer_router
 from routers.post_router import router as post_router
+from routers.profile_router import router as profile_router
 from routers.therapist_dashboard_router import router as therapist_dashboard_router
 from routers.therapist_router import router as therapist_router
 from seed import seed_all
@@ -36,6 +38,8 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(profile_router)
+app.include_router(friend_router)
 app.include_router(mood_router)
 app.include_router(post_router)
 app.include_router(peer_router)

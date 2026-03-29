@@ -20,6 +20,7 @@ def _user_response(user: User) -> dict:
         "id": str(user.id),
         "name": user.name,
         "email": user.email,
+        "bio": user.bio,
         "provider": user.provider,
         "role": user.role,
         "is_premium": user.is_premium,

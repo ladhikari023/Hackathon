@@ -11,6 +11,7 @@ class User(SQLModel, table=True):
     name: str
     email: str = Field(index=True, unique=True)
     role: str = Field(default="user")  # "user", "therapist", "admin"
+    bio: str = Field(default="")
     is_premium: bool = Field(default=False)
     provider: str = Field(default="demo")
     provider_id: str = Field(index=True)

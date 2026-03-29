@@ -11,12 +11,12 @@ from models.therapist import Therapist
 from models.user import User
 
 DEMO_ACCOUNTS: dict[str, dict] = {
-    "ram":       {"name": "Ram Sharma",  "email": "ram@mankosathi.app",        "role": "user"},
-    "ananya":    {"name": "Ananya Thapa", "email": "ananya@mankosathi.app",     "role": "user"},
-    "sita":      {"name": "Sita Gurung", "email": "sita@mankosathi.app",       "role": "user"},
-    "dr-sharma": {"name": "Dr. Sharma",  "email": "dr.sharma@mankosathi.app",  "role": "therapist"},
-    "dr-patel":  {"name": "Dr. Patel",   "email": "dr.patel@mankosathi.app",   "role": "therapist"},
-    "admin":     {"name": "Admin",       "email": "admin@mankosathi.app",      "role": "admin"},
+    "ram":       {"name": "Ram Sharma", "email": "ram@mankosathi.app", "role": "user", "bio": "Feeling stretched between work stress and missing family, but trying to stay grounded one day at a time."},
+    "ananya":    {"name": "Ananya Thapa", "email": "ananya@mankosathi.app", "role": "user", "bio": "Meditation, small routines, and honest conversations have been helping me lately."},
+    "sita":      {"name": "Sita Gurung", "email": "sita@mankosathi.app", "role": "user", "bio": "Sleep has been difficult, but I am here to meet kind people who understand the hard days too."},
+    "dr-sharma": {"name": "Dr. Sharma", "email": "dr.sharma@mankosathi.app", "role": "therapist", "bio": "Therapist focused on helping people feel heard, steady, and supported through anxiety and life transitions."},
+    "dr-patel":  {"name": "Dr. Patel", "email": "dr.patel@mankosathi.app", "role": "therapist", "bio": "Interested in culturally aware care, stress management, and practical tools people can use every day."},
+    "admin":     {"name": "Admin", "email": "admin@mankosathi.app", "role": "admin", "bio": "Helping keep the MankoSathi community safe, respectful, and available when people need support."},
 }
 
 THERAPISTS = [
@@ -37,6 +37,7 @@ async def seed_all(session: AsyncSession) -> None:
             name=acct["name"],
             email=acct["email"],
             role=acct["role"],
+            bio=acct["bio"],
             provider="demo",
             provider_id=f"demo-{key}",
         )

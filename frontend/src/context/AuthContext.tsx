@@ -13,6 +13,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  bio: string;
   provider: string;
   role: UserRole;
   is_premium: boolean;

@@ -10,6 +10,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: "🏠" },
+  { to: "/profile", label: "Profile", icon: "🪪" },
   { to: "/chat", label: "AI Chat", icon: "💬" },
   { to: "/mood", label: "Mood", icon: "📊" },
   { to: "/community", label: "Community", icon: "👥" },
