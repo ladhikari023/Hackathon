@@ -12,6 +12,7 @@ router = APIRouter(prefix="/users", tags=["profiles"])
 
 class ProfileUpdateRequest(BaseModel):
     bio: str
+    health_status: str
 
 
 def _profile_response(target: User, state: dict) -> dict:
@@ -23,6 +24,7 @@ def _profile_response(target: User, state: dict) -> dict:
         "id": str(target.id),
         "display_name": target.name if can_view_details else "Community member",
         "bio": target.bio,
+        "health_status": target.health_status,
         "is_self": is_self,
         "are_friends": are_friends,
         "can_view_details": can_view_details,
@@ -49,6 +51,7 @@ async def update_my_profile(
     session: AsyncSession = Depends(get_session),
 ):
     user.bio = body.bio.strip()
+    user.health_status = body.health_status.strip()
     session.add(user)
     await session.commit()
     await session.refresh(user)

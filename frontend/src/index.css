@@ -277,6 +277,76 @@ body {
   gap: 16px;
 }
 
+.profile-health-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.9fr);
+  gap: 20px;
+  padding: 24px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 42%),
+    linear-gradient(135deg, #eef2ff 0%, #f8fafc 55%, #f3f4f6 100%);
+  border: 1px solid rgba(99, 102, 241, 0.16);
+}
+
+.profile-health-copy h3 {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.profile-health-copy p {
+  color: var(--text-muted);
+  max-width: 58ch;
+}
+
+.profile-health-label {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.14);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-health-value {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  box-shadow: 0 10px 30px -20px rgba(99, 102, 241, 0.4);
+}
+
+.profile-health-value strong {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.profile-health-value input,
+.profile-card input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  background: var(--surface);
+  outline: none;
+}
+
+.profile-health-value input:focus,
+.profile-card input:focus {
+  border-color: var(--primary);
+}
+
 .profile-actions {
   display: flex;
   align-items: center;
@@ -316,6 +386,10 @@ body {
   color: var(--text-muted);
 }
 
+.profile-card h3 {
+  font-size: 1.05rem;
+}
+
 .profile-details {
   display: grid;
   gap: 14px;
@@ -346,6 +420,73 @@ body {
   background: var(--bg);
 }
 
+.peer-search-card {
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.peer-search-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.28);
+  box-shadow: 0 14px 28px -24px rgba(99, 102, 241, 0.45);
+}
+
+.peer-tag-search {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.peer-search-panel {
+  margin-top: 18px;
+}
+
+.peer-tag-input-wrap {
+  min-height: 12px;
+}
+
+.peer-tag-list,
+.peer-tag-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.peer-tag,
+.peer-tag-suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.peer-tag:hover,
+.peer-tag-suggestion:hover,
+.peer-tag-suggestion.active {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.peer-search-status {
+  display: inline-flex;
+  margin-top: 8px;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .profile-request-item a {
   color: var(--text);
   font-weight: 600;
@@ -370,6 +511,12 @@ body {
 
 .profile-error {
   color: var(--danger);
+}
+
+@media (max-width: 860px) {
+  .profile-health-hero {
+    grid-template-columns: 1fr;
+  }
 }
 
 .sidebar-footer {

@@ -7,6 +7,7 @@ interface Profile {
   id: string;
   display_name: string;
   bio: string;
+  health_status: string;
   is_self: boolean;
   are_friends: boolean;
   can_view_details: boolean;
@@ -41,6 +42,7 @@ export default function ProfilePage() {
   const targetId = userId ?? user?.id ?? null;
   const [profile, setProfile] = useState<Profile | null>(null);
   const [bioDraft, setBioDraft] = useState("");
+  const [healthStatusDraft, setHealthStatusDraft] = useState("");
   const [requests, setRequests] = useState<FriendRequestsResponse>({
     incoming: [],
     outgoing: [],
@@ -64,6 +66,7 @@ export default function ProfilePage() {
         if (cancelled) return;
         setProfile(profileRes.data);
         setBioDraft(profileRes.data.bio);
+        setHealthStatusDraft(profileRes.data.health_status);
 
         if (profileRes.data.is_self) {
           const requestsRes = await api.get<FriendRequestsResponse>(
@@ -98,6 +101,7 @@ export default function ProfilePage() {
     const res = await api.get<Profile>(path);
     setProfile(res.data);
     setBioDraft(res.data.bio);
+    setHealthStatusDraft(res.data.health_status);
   }
 
   async function refreshRequests() {
@@ -113,9 +117,11 @@ export default function ProfilePage() {
     try {
       const res = await api.patch<Profile>("/users/me/profile", {
         bio: bioDraft,
+        health_status: healthStatusDraft,
       });
       setProfile(res.data);
       setBioDraft(res.data.bio);
+      setHealthStatusDraft(res.data.health_status);
     } catch {
       setError("Unable to save your bio right now.");
     } finally {
@@ -208,6 +214,45 @@ export default function ProfilePage() {
 
       {error && <p className="profile-error">{error}</p>}
 
+      <section className="profile-health-hero">
+        <div className="profile-health-copy">
+          <span className="profile-health-label">Health Status</span>
+          <h3>
+            {profile.is_self
+              ? "Share the health experiences or challenges that matter to you."
+              : "Shared health context"}
+          </h3>
+          <p>
+            {profile.is_self
+              ? "Use tags or short phrases so people who relate to your experience can find you more easily."
+              : "This section stays visible even when the rest of the profile is private."}
+          </p>
+        </div>
+        <div className="profile-health-value">
+          {profile.is_self ? (
+            <>
+              <label className="profile-detail-label" htmlFor="health-status">
+                Health tags
+              </label>
+              <input
+                id="health-status"
+                type="text"
+                value={healthStatusDraft}
+                onChange={(e) => setHealthStatusDraft(e.target.value)}
+                placeholder="For example: anxiety, cancer, schizophrenia"
+              />
+            </>
+          ) : (
+            <>
+              <span className="profile-detail-label">Visible to everyone</span>
+              <strong>
+                {profile.health_status || "No health status shared yet."}
+              </strong>
+            </>
+          )}
+        </div>
+      </section>
+
       <div className="profile-grid">
         <section className="profile-card">
           <h3>Bio</h3>
@@ -220,13 +265,15 @@ export default function ProfilePage() {
                 rows={6}
               />
               <button className="btn-primary" onClick={handleSaveBio} disabled={saving}>
-                {saving ? "Saving..." : "Save Bio"}
+                {saving ? "Saving..." : "Save Profile"}
               </button>
             </>
           ) : (
-            <p className="profile-bio">
-              {profile.bio || "This user has not added a bio yet."}
-            </p>
+            <>
+              <p className="profile-bio">
+                {profile.bio || "This user has not added a bio yet."}
+              </p>
+            </>
           )}
         </section>
 

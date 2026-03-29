@@ -14,6 +14,7 @@ interface User {
   name: string;
   email: string;
   bio: string;
+  health_status: string;
   provider: string;
   role: UserRole;
   is_premium: boolean;

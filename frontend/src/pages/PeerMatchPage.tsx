@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 
 interface MatchInfo {
@@ -25,14 +26,43 @@ interface Buddy {
   since: string;
 }
 
+interface SearchResult {
+  id: string;
+  display_name: string;
+  bio: string;
+  health_status: string;
+  friendship_status:
+    | "self"
+    | "friends"
+    | "none"
+    | "incoming_request"
+    | "outgoing_request";
+  pending_request_id: string | null;
+}
+
 export default function PeerMatchPage() {
+  const suggestedTags = [
+    "anxiety",
+    "depression",
+    "stress",
+    "insomnia",
+    "cancer",
+    "schizophrenia",
+    "burnout",
+    "grief",
+  ];
+  const navigate = useNavigate();
   const [match, setMatch] = useState<MatchInfo | null>(null);
   const [messages, setMessages] = useState<PeerMsg[]>([]);
   const [input, setInput] = useState("");
   const [buddies, setBuddies] = useState<Buddy[]>([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTags, setSearchTags] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [tab, setTab] = useState<"match" | "buddies">("match");
+  const [tab, setTab] = useState<"match" | "buddies">("buddies");
   const bottomRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -202,6 +232,36 @@ export default function PeerMatchPage() {
     }
   }
 
+  async function handleSearchFriends() {
+    if (searchTags.length === 0) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const res = await api.get("/friends/search", {
+        params: { q: searchTags.join(",") },
+      });
+      setSearchResults(res.data);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function addSearchTag(rawTag: string) {
+    const tag = rawTag.trim().toLowerCase();
+    if (!tag || searchTags.includes(tag)) return;
+    setSearchTags((prev) => [...prev, tag]);
+    setSearchInput("");
+  }
+
+  function removeSearchTag(tagToRemove: string) {
+    setSearchTags((prev) => prev.filter((tag) => tag !== tagToRemove));
+  }
+
   if (loading) {
     return (
       <div className="page peer-page">
@@ -217,39 +277,150 @@ export default function PeerMatchPage() {
         <p>Connect anonymously with someone who understands</p>
         <div className="peer-tabs">
           <button
-            className={`peer-tab ${tab === "match" ? "active" : ""}`}
-            onClick={() => setTab("match")}
-          >
-            Chat
-          </button>
-          <button
             className={`peer-tab ${tab === "buddies" ? "active" : ""}`}
             onClick={() => setTab("buddies")}
           >
             Buddies {buddies.length > 0 && `(${buddies.length})`}
           </button>
+          <button
+            className={`peer-tab ${tab === "match" ? "active" : ""}`}
+            onClick={() => setTab("match")}
+          >
+            Chat
+          </button>
         </div>
       </header>
 
       {tab === "buddies" && (
-        <div className="buddy-list">
-          {buddies.length === 0 && (
+        <>
+          <div className="profile-card peer-search-panel">
+            <h3>Search by Health Status Tags</h3>
             <p style={{ color: "var(--text-muted)" }}>
-              No buddies yet. Match with a peer and opt in to become buddies!
+              Add one or more tags to find users with similar health-related experiences.
             </p>
-          )}
-          {buddies.map((b) => (
-            <div key={b.match_id} className="buddy-card" onClick={() => handleOpenBuddy(b.match_id)}>
-              <span className="buddy-avatar">🤝</span>
-              <div>
-                <strong>{b.buddy_name}</strong>
-                <span className="buddy-since">
-                  Buddies since {new Date(b.since).toLocaleDateString()}
-                </span>
+            <div className="peer-tag-search">
+              <div className="peer-tag-input-wrap">
+                {searchTags.length > 0 && (
+                  <div className="peer-tag-list">
+                    {searchTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        className="peer-tag"
+                        onClick={() => removeSearchTag(tag)}
+                      >
+                        #{tag} <span aria-hidden="true">×</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="comment-form">
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Type a tag and press Enter..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (searchInput.trim()) {
+                        addSearchTag(searchInput);
+                      } else {
+                        handleSearchFriends();
+                      }
+                    }
+                    if (e.key === "," && searchInput.trim()) {
+                      e.preventDefault();
+                      addSearchTag(searchInput);
+                    }
+                    if (e.key === "Backspace" && !searchInput && searchTags.length > 0) {
+                      removeSearchTag(searchTags[searchTags.length - 1]);
+                    }
+                  }}
+                />
+                <button
+                  className="btn-primary btn-sm"
+                  onClick={handleSearchFriends}
+                  disabled={searching || searchTags.length === 0}
+                >
+                  {searching ? "Searching..." : "Search"}
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+
+            <div className="peer-tag-suggestions">
+              {suggestedTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`peer-tag-suggestion ${searchTags.includes(tag) ? "active" : ""}`}
+                  onClick={() => addSearchTag(tag)}
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
+
+            {searchTags.length > 0 && (
+              <p className="profile-empty">
+                Searching for: {searchTags.map((tag) => `#${tag}`).join(", ")}
+              </p>
+            )}
+
+            {searchTags.length > 0 && searchResults.length === 0 && !searching && (
+              <p className="profile-empty">No users matched those tags yet.</p>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="profile-request-list">
+                {searchResults.map((result) => (
+                  <div
+                    key={result.id}
+                    className="profile-request-item peer-search-card"
+                    onClick={() => navigate(`/users/${result.id}`)}
+                  >
+                    <div>
+                      <strong>{result.display_name}</strong>
+                      <span className="peer-search-status">
+                        {result.health_status || "No health status shared yet."}
+                      </span>
+                      <p>{result.bio || "No bio shared yet."}</p>
+                    </div>
+                    <span className="profile-badge">
+                      {result.friendship_status === "friends"
+                        ? "Friends"
+                        : result.friendship_status === "outgoing_request"
+                          ? "Request sent"
+                          : result.friendship_status === "incoming_request"
+                            ? "Requested you"
+                            : "View profile"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="buddy-list">
+            {buddies.length === 0 && (
+              <p style={{ color: "var(--text-muted)" }}>
+                No buddies yet. Match with a peer and opt in to become buddies!
+              </p>
+            )}
+            {buddies.map((b) => (
+              <div key={b.match_id} className="buddy-card" onClick={() => handleOpenBuddy(b.match_id)}>
+                <span className="buddy-avatar">🤝</span>
+                <div>
+                  <strong>{b.buddy_name}</strong>
+                  <span className="buddy-since">
+                    Buddies since {new Date(b.since).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {tab === "match" && !match && (

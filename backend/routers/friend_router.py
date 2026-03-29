@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import select
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlmodel import or_, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from auth import get_current_user
@@ -9,6 +9,42 @@ from models.user import User
 from services.friend_service import are_users_friends, friendship_state
 
 router = APIRouter(prefix="/friends", tags=["friends"])
+
+
+@router.get("/search")
+async def search_users_by_health_status(
+    q: str = Query(min_length=1),
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    tags = [tag.strip() for tag in q.split(",") if tag.strip()]
+    search_terms = tags or [q.strip()]
+    match_clauses = [
+        or_(
+            User.health_status.ilike(f"%{term}%"),
+            User.bio.ilike(f"%{term}%"),
+        )
+        for term in search_terms
+    ]
+
+    stmt = select(User).where(User.id != user.id, or_(*match_clauses)).order_by(User.name).limit(20)
+    result = await session.exec(stmt)
+    users = result.all()
+
+    items = []
+    for candidate in users:
+        state = await friendship_state(session, user.id, candidate.id)
+        items.append(
+            {
+                "id": str(candidate.id),
+                "display_name": candidate.name,
+                "bio": candidate.bio,
+                "health_status": candidate.health_status,
+                "friendship_status": state["status"],
+                "pending_request_id": str(state["request"].id) if state["request"] else None,
+            }
+        )
+    return items
 
 
 @router.get("/requests")
