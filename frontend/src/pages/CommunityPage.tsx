@@ -57,7 +57,7 @@ export default function CommunityPage() {
         <div className="page-header-row">
           <div>
             <h2>Community</h2>
-            <p>Share and support each other</p>
+            <p>Share and support each other anonymously</p>
           </div>
           <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
             {showForm ? "Cancel" : "+ New Post"}
@@ -76,7 +76,7 @@ export default function CommunityPage() {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Share your thoughts..."
+            placeholder="Share your thoughts anonymously..."
             rows={4}
           />
           <button
