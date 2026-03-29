@@ -1058,6 +1058,13 @@ body {
   font-size: 0.85rem;
 }
 
+.therapist-request-status-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
 .therapist-pricing-form {
   display: flex;
   flex-direction: column;
@@ -1072,6 +1079,33 @@ body {
   display: flex;
   gap: 10px;
   margin-top: 10px;
+}
+
+.therapist-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.therapist-thread-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.therapist-thread-message {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.therapist-thread-message.me {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.18);
 }
 
 .therapist-avatar {

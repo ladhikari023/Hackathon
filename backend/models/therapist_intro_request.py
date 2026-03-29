@@ -13,4 +13,6 @@ class TherapistIntroRequest(SQLModel, table=True):
     intro_message: str
     price_cents: int = Field(default=0)
     status: str = Field(default="pending")  # pending, accepted, rejected
+    payment_status: str = Field(default="not_required")  # not_required, pending, paid
+    stripe_checkout_session_id: str | None = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))

@@ -11,6 +11,7 @@ import AdminPage from "./pages/AdminPage";
 import PatientInsightsPage from "./pages/PatientInsightsPage";
 import PeerMatchPage from "./pages/PeerMatchPage";
 import ProfilePage from "./pages/ProfilePage";
+import TherapistSettingsPage from "./pages/TherapistSettingsPage";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/peers" element={<PeerMatchPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/patient-insights" element={<PatientInsightsPage />} />
+          <Route path="/therapist-settings" element={<TherapistSettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -17,6 +17,7 @@ const navItems: NavItem[] = [
   { to: "/therapists", label: "Therapists", icon: "🩺" },
   { to: "/peers", label: "Peer Match", icon: "🤝", roles: ["user"] },
   { to: "/patient-insights", label: "Patient Insights", icon: "📋", roles: ["therapist"] },
+  { to: "/therapist-settings", label: "Therapist Settings", icon: "🛠️", roles: ["therapist"] },
   { to: "/admin", label: "Admin Panel", icon: "⚙️", roles: ["admin"] },
 ];
 
